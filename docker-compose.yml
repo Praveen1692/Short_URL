@@ -4,8 +4,8 @@ services:
    
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: userpass
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
