@@ -2,18 +2,21 @@ import express from "express";
 import { db } from "../db/index.js";
 import { userTable } from "../models/index.js";
 import { eq } from "drizzle-orm";
-
-import { salt, randomBytes, createHmac } from "crypto";
+import { signupRequestBodySchema } from "../validation/request.validation.js";
+import { randomBytes, createHmac } from "crypto";
 const router = express.Router();
 
 router.post("/signup", async (req, res) => {
-  const { firstname, lastname, email, xword } = req.body;
+  const validationResult = await signupRequestBodySchema.safeParse(req.body);
 
-  if (!firstname || !lastname || !email || !password) {
+  if (validationResult.error) {
     return res
       .status(400)
       .json({ success: false, message: "All fields are mandetory" });
   }
+
+  const { firstname, lastname, email, password } = validationResult.data;
+
   try {
     const [existingUser] = await db
       .select({
@@ -46,13 +49,11 @@ router.post("/signup", async (req, res) => {
       })
       .returning({ id: userTable.id });
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "User Created Successfully",
-        data: { userId: user.id },
-      });
+    return res.status(201).json({
+      success: true,
+      message: "User Created Successfully",
+      data: { userId: user.id },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
