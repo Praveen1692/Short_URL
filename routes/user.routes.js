@@ -4,8 +4,8 @@ import { userTable } from "../models/index.js";
 import { eq } from "drizzle-orm";
 import { signupRequestBodySchema } from "../validation/request.validation.js";
 import { randomBytes, createHmac } from "crypto";
-import jwt from "jsonwebtoken";
-import { success } from "zod";
+
+import { createUserToken } from "../utilis/token.js";
 const router = express.Router();
 
 async function getUserByEmail(email) {
@@ -72,6 +72,8 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
+  console.log("Login API Hit");
+
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -82,6 +84,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const user = await getUserByEmail(email);
+    //console.log("User", user);
 
     if (!user) {
       return res
@@ -100,7 +103,10 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = await jwt.sign({ id: user.id }, process.env.SECREAT_KEY);
+    //const token = await jwt.sign({ id: user.id }, process.env.SECREAT_KEY);
+
+    const token = await createUserToken({ id: user.id });
+    console.log("token", token);
 
     return res.status(200).json({
       success: true,
